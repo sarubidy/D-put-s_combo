@@ -1,0 +1,209 @@
+# Explications et utilités des principales classes et fonctions du projet
+
+Ce document explique le rôle de chaque classe et fonction importante de votre projet, en détaillant :  
+- **Quoi ?** : Ce que fait la classe ou la fonction.  
+- **Pourquoi ?** : À quoi elle sert dans l’application.  
+- **Comment ?** : Comment elle fonctionne, principes de base.
+
+---
+
+## 1. Classe `Formulaire`
+
+### Quoi ?
+C’est un panneau graphique (hérite de `JPanel`), qui sert à saisir les votes pour chaque candidat dans un bureau de vote.
+
+### Pourquoi ?
+Permet à l’utilisateur de sélectionner une zone administrative (Faritra, Faritany, District, Bureau), puis un candidat, et de saisir le nombre de voix avant d’enregistrer ce vote.
+
+### Comment ?
+- Utilise désormais la classe généralisée `Combo<T>` (qui hérite de `JComboBox<T>`) pour toutes les listes déroulantes : navigation fluide et code plus lisible.
+- Le bouton **OK** sauvegarde le vote dans un fichier texte `votes.txt` au format :  
+  `nomCandidat;nomColistier;nomBureau;nbVoix`
+- Le bouton **Supprimer les sauvegardes** efface tous les votes enregistrés.
+- Le bouton **Confirmer** affiche le panneau de résultats.
+- Les méthodes `updateFaritany`, `updateDistrict`, `updateBureau`, `updateCandidat` servent à remplir dynamiquement les listes déroulantes en fonction des sélections.
+- La méthode `updateColistier` met à jour (en interne) le nom du colistier du candidat sélectionné.
+
+---
+
+## 2. Classe `Combo<T>`
+
+### Quoi ?
+Une classe générique qui hérite de `JComboBox<T>` et permet de créer facilement des listes déroulantes pour n'importe quel type d'entité du modèle (Faritra, Faritany, District, Bureau, Candidats).
+
+### Pourquoi ?
+- Éviter la répétition de code pour l'ajout/mise à jour/sélection d'éléments dans les ComboBox.
+- Rendre le chaînage entre ComboBox plus intuitif et facilement maintenable.
+
+### Comment ?
+- Constructeurs qui acceptent soit un tableau, soit une liste d’éléments, soit rien (initialisation vide).
+- Méthode `updateItems(List<T>)` pour rafraîchir dynamiquement les options affichées.
+- Peut être utilisée partout où un `JComboBox` était utilisé, avec une syntaxe plus claire :  
+  `comboFaritra = new Combo<>(faritraArr);`
+
+---
+
+## 3. Classe `ResultatPanel`
+
+### Quoi ?
+Un panneau graphique qui affiche les résultats des votes, avec possibilité de filtrer par Faritra, Faritany, District, Bureau.
+
+### Pourquoi ?
+Permet de visualiser les résultats des votes sous différentes granularités (local, district, etc.), et d’appliquer les règles d’élection selon le nombre de députés à élire par district.
+
+### Comment ?
+- Charge les votes enregistrés dans `votes.txt` avec la méthode `chargerVotes`.
+- Propose des filtres (Faritra, Faritany, District, Bureau) via des `Combo<T>`.
+- Affiche les résultats dans une `JTextArea` :  
+  - Pour un bureau : affiche le(s) gagnant(s) et le nombre de voix.
+  - Pour un district : applique la règle des 2 députés (si le premier a au moins deux fois plus de voix que le second, il gagne les 2 sièges avec son colistier ; sinon, les 2 premiers sont élus).
+  - Pour des niveaux supérieurs, agrège les résultats de chaque sous-ensemble.
+- Utilise les méthodes :
+    - `afficherResultatsBureau` : Calcule le gagnant dans un bureau.
+    - `afficherResultatsDistrict` : Applique la règle électorale spécifique pour un district.
+    - `afficherResultats` : Affiche tous les résultats selon la sélection.
+- La classe interne `Vote` représente un vote (avec titulaire, colistier, bureau, voix).
+
+---
+
+## 4. Classe `Main`
+
+### Quoi ?
+Le point d’entrée du programme : construit toute la hiérarchie des entités administratives (candidats, bureaux, districts, faritany, faritra), puis lance l’interface graphique principale.
+
+### Pourquoi ?
+Permet d’initialiser l’ensemble de la structure de données du projet et de démarrer l’application.
+
+### Comment ?
+- Crée les objets `Candidats`, puis les regroupe dans des tableaux par bureau.
+- Crée les objets `Bureau` puis les districts, faritany et faritra de manière arborescente.
+- Rassemble tous les `Faritra` dans un tableau `faritraArr`.
+- Lance l’interface graphique en appelant :  
+  `new Frame(faritraArr);`
+- Si tu veux modifier la structure administrative ou les candidats pour un test ou une nouvelle élection, c’est ici qu’il faut intervenir.
+
+---
+
+## 5. Classe `Candidats`
+
+### Quoi ?
+Classe simple qui représente un candidat titulaire à une élection et son colistier.
+
+### Pourquoi ?
+Permet d’associer à chaque titulaire son colistier, ce qui est indispensable pour afficher le bon résultat si un binôme gagne tous les sièges.
+
+### Comment ?
+- Attributs :  
+  - `nom` : nom du titulaire.
+  - `nom2` : nom du colistier.
+- Constructeur : `new Candidats(nom, nom2)`
+- Redéfinit `toString()` pour afficher le nom principal dans les listes déroulantes.
+
+---
+
+## 6. Les classes administratives : `Faritra`, `Faritany`, `District`, `Bureau`
+
+### Quoi ?
+Structures arborescentes qui modélisent les subdivisions administratives.
+
+### Pourquoi ?
+Permettent de filtrer la saisie et l’affichage des votes selon la zone concernée.
+
+### Comment ?
+- **Faritra** : contient un nom et une liste de `Faritany`.
+- **Faritany** : contient un nom et une liste de `District`.
+- **District** : contient un nom, le nombre de sièges (`nombre_deputes`), et une liste de `Bureau`.
+- **Bureau** : contient un nom et une liste de `Candidats` (ceux qui se présentent dans ce bureau).
+
+Chacune de ces classes sert à remplir les `Combo<T>` du formulaire et du panneau de résultats.
+
+---
+
+## 7. Le fichier `votes.txt`
+
+### Quoi ?
+Un fichier texte où chaque ligne représente un vote saisi.
+
+### Pourquoi ?
+C’est le stockage persistant des votes, utilisé pour l’affichage des résultats.
+
+### Comment ?
+- Format d’une ligne :  
+  `nomCandidat;nomColistier;nomBureau;nbVoix`
+- Il est lu par `ResultatPanel` pour calculer et afficher les résultats.
+
+---
+
+## 8. Fonctions principales
+
+### - Méthodes `update...` (du formulaire)
+
+**Quoi ?**  
+Elles actualisent chaque liste déroulante selon la sélection précédente.
+
+**Pourquoi ?**  
+Pour ne montrer que les choix valides à chaque étape (ex : on ne voit que les districts d’un Faritany donné).
+
+**Comment ?**  
+Elles vident la liste, puis ajoutent les items correspondant à la sélection courante via la méthode `updateItems` de la classe Combo.
+
+---
+
+### - Méthode `afficherResultatsDistrict`
+
+**Quoi ?**  
+Calcule et affiche les élus d’un district, en tenant compte du nombre de sièges.
+
+**Pourquoi ?**  
+Applique la règle électorale :  
+- Si un candidat a au moins deux fois plus de voix que le second, il prend les deux sièges avec son colistier.
+- Sinon, les deux premiers sont élus.
+
+**Comment ?**  
+- Récupère les scores de chaque candidat.
+- Trie par nombre de voix.
+- Applique la règle et construit une chaîne de texte à afficher.
+
+---
+
+### - Méthode `chargerVotes`
+
+**Quoi ?**  
+Charge tous les votes depuis le fichier texte.
+
+**Pourquoi ?**  
+Pour pouvoir calculer les résultats.
+
+**Comment ?**  
+Lit chaque ligne, découpe en morceaux, crée un objet `Vote` et l’ajoute à la liste.
+
+---
+
+## 9. Utilisation générale du projet
+
+- L’utilisateur ouvre le formulaire, saisit les votes bureau par bureau.
+- Les votes sont sauvegardés dans `votes.txt`.
+- L’utilisateur ouvre le panneau de résultats (bouton **Confirmer**) : il peut voir les résultats à n’importe quel niveau (tout, faritra, faritany, district, bureau) en filtrant avec les listes déroulantes.
+- Les règles d’attribution des sièges sont appliquées automatiquement.
+
+---
+
+## 10. Pourquoi cette architecture ?
+
+- **Lisibilité** : chaque entité administrative a sa classe.
+- **Modularité** : l’interface de saisie et l’affichage des résultats sont séparés.
+- **Évolutivité** : on peut facilement ajouter des districts, bureaux, candidats, etc.
+- **Respect des règles électorales** : la logique de calcul des élus est centralisée dans une méthode dédiée.
+
+---
+
+## 11. Comment adapter/étendre ?
+
+- Pour ajouter ou remplacer des candidats : il suffit de modifier les tableaux dans le code d’initialisation (souvent dans la classe Main).
+- Pour changer la règle d’attribution des sièges : modifier la méthode `afficherResultatsDistrict`.
+- Pour ajouter des informations : enrichir les classes administratives ou `Vote`.
+- Pour étendre l’interface ou la structure, ajoute simplement de nouveaux objets dans Main et relance l’application.
+
+---
+
+*Fin du document explicatif.*
