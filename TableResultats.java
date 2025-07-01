@@ -1,3 +1,4 @@
+package pack;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.BorderLayout;
@@ -80,10 +81,29 @@ public class TableResultats extends JPanel {
 
         add(filtrePanel, BorderLayout.NORTH);
 
-        // Colonnes : Faritra, Faritany, District, Bureau, Candidat, Voix
         model = new DefaultTableModel(new Object[]{"Faritra", "Faritany", "District", "Bureau", "Candidat", "Voix"}, 0);
         table = new JTable(model);
         add(new JScrollPane(table), BorderLayout.CENTER);
+
+        table.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
+            public void mouseClicked(java.awt.event.MouseEvent e) {
+                if (e.getClickCount() == 1 && table.getSelectedRow() != -1) {
+                    int row = table.getSelectedRow();
+                    if (row != -1) {
+                        String faritra = (String) model.getValueAt(row, 0);
+                        String faritany = (String) model.getValueAt(row, 1);
+                        String district = (String) model.getValueAt(row, 2);
+                        String bureau = (String) model.getValueAt(row, 3);
+                        String candidat = (String) model.getValueAt(row, 4);
+                        int voix = (Integer) model.getValueAt(row, 5);
+
+                        InfoPanel infoPanel = new InfoPanel(faritra, faritany, district, bureau, candidat, voix);
+                        JOptionPane.showMessageDialog(TableResultats.this, infoPanel, "Informations complètes", JOptionPane.INFORMATION_MESSAGE);
+                    }
+                }
+            }
+        });
 
         updateFaritany();
         majTableau();
@@ -122,7 +142,6 @@ public class TableResultats extends JPanel {
         majTableau();
     }
 
-    // Recharge le tableau selon les filtres + option Tous
     public void majTableau() {
         model.setRowCount(0);
         Object faritraSel = comboFaritra.getSelectedItem();
@@ -138,7 +157,6 @@ public class TableResultats extends JPanel {
                     if (districtSel instanceof District && districtSel != null && district != districtSel) continue;
                     for (Bureau bureau : district.list_bureau) {
                         if (bureauSel instanceof Bureau && bureauSel != null && bureau != bureauSel) continue;
-                        // Pour chaque vote dans ce bureau
                         for (ResultatPanel.Vote v : votes) {
                             if (v.bureau.equals(bureau.nom)) {
                                 model.addRow(new Object[]{

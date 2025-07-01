@@ -1,3 +1,4 @@
+package pack;
 import javax.swing.*;
 
 public class ComboFaritany extends JComboBox<Faritany> {

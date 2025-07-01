@@ -1,3 +1,4 @@
+package pack;
 public class Candidats
 {
     String nom;   

@@ -1,3 +1,4 @@
+package pack;
 import javax.swing.*;
 
 public class ComboDistrict extends JComboBox<District> {

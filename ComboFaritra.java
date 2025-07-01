@@ -1,3 +1,4 @@
+package pack;
 import javax.swing.*;
 
 public class ComboFaritra extends JComboBox<Faritra> {

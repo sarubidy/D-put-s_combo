@@ -1,3 +1,4 @@
+package pack;
 public class Faritra
 {
     String nom;

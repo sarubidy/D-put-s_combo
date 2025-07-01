@@ -1,3 +1,4 @@
+package pack;
 import javax.swing.*;
 
 public class ComboCandidats extends JComboBox<Candidats> {
